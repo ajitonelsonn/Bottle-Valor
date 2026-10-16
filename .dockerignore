@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.env.local
+.env*.local
+*.tsbuildinfo
+ilustration
+docs
+scripts
+*.md
+!README.md
+Dockerfile
+.dockerignore
+.gcloudignore

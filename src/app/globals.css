@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+/*
+ * BotleValor design tokens.
+ * Every colour, radius, shadow, font and layout width used by the UI is
+ * defined here so the whole app stays visually consistent.
+ */
+@theme {
+  /* Brand */
+  --color-navy-950: #0a1b45;
+  --color-navy-900: #10275f;
+  --color-navy-800: #17357d;
+  --color-blue-700: #1554c0;
+  --color-blue-600: #1b67de;
+  --color-blue-500: #2f7cf0;
+  --color-blue-100: #e4eefd;
+  --color-blue-50: #f1f6fe;
+
+  --color-green-800: #0c6430;
+  --color-green-700: #0f7a3b;
+  --color-green-600: #148a45;
+  --color-green-500: #1fa457;
+  --color-green-400: #4cc27c;
+  --color-green-100: #dcf3e4;
+  --color-green-50: #eef9f2;
+
+  --color-teal-600: #0d8f8a;
+  --color-teal-100: #d7f3f1;
+  --color-teal-50: #ecfaf9;
+
+  --color-gold-600: #c98500;
+  --color-gold-500: #f2a900;
+  --color-gold-400: #ffc531;
+  --color-gold-100: #fff1c7;
+  --color-gold-50: #fff8e5;
+
+  --color-violet-600: #6d4fd8;
+  --color-violet-50: #f3f0fe;
+
+  /* Status */
+  --color-danger-700: #b42318;
+  --color-danger-600: #d92d20;
+  --color-danger-100: #fde4e1;
+  --color-danger-50: #fff3f1;
+  --color-warning-700: #a15c00;
+  --color-warning-600: #c26e00;
+  --color-warning-100: #ffecc8;
+  --color-warning-50: #fff7e8;
+
+  /* Neutrals */
+  --color-ink: #0f1d3a;
+  --color-ink-soft: #33415c;
+  --color-muted: #5a6782;
+  --color-subtle: #8792a8;
+  --color-line: #e2e8f1;
+  --color-line-strong: #cdd6e3;
+  --color-surface: #ffffff;
+  --color-canvas: #f5f8fc;
+  --color-mint: #f2faf5;
+
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Radii */
+  --radius-control: 0.75rem;
+  --radius-card: 1.25rem;
+  --radius-panel: 1.75rem;
+
+  /* Shadows (soft, restrained) */
+  --shadow-card: 0 1px 2px rgb(16 39 95 / 0.04), 0 10px 28px -16px rgb(16 39 95 / 0.18);
+  --shadow-raised: 0 2px 6px rgb(16 39 95 / 0.06), 0 22px 48px -20px rgb(16 39 95 / 0.28);
+  --shadow-button: 0 8px 18px -10px rgb(15 122 59 / 0.65);
+
+  /* Layout widths */
+  --container-content: 82rem;
+  --container-auth: 30rem;
+  --spacing-sidebar: 17rem;
+  --spacing-topbar: 4rem;
+  --spacing-bottomnav: 4.5rem;
+
+  /* Motion */
+  --animate-fade-in: fade-in 180ms ease-out;
+  --animate-pop-in: pop-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --animate-scan: scan 2.2s ease-in-out infinite;
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes scan {
+    0%, 100% { top: 8%; }
+    50% { top: 88%; }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    color: var(--color-navy-900);
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-blue-500);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: var(--color-green-100);
+  }
+
+  /* Let grid columns shrink below their content's min width (prevents map/scroller blowouts on phones). */
+  .grid > * {
+    min-width: 0;
+  }
+
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  dialog::backdrop {
+    background: rgb(10 27 69 / 0.45);
+    backdrop-filter: blur(3px);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* The logo PNG has a white background; multiply lets it sit on tinted surfaces. */
+  .logo-blend {
+    mix-blend-mode: multiply;
+  }
+}
+
+/* Leaflet overrides so map controls match the design system. */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: #dbe9f3;
+}
+.leaflet-control-attribution {
+  font-size: 11px;
+  border-radius: 8px 0 0 0;
+}
+.leaflet-div-icon.bv-marker {
+  background: transparent;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

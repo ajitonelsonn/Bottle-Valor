@@ -19,14 +19,12 @@ import {
   RefreshCw,
   ScanLine,
   ShieldAlert,
-  SwitchCamera,
   Zap,
   ZapOff,
 } from "lucide-react";
 import { Button, buttonClass } from "@/components/common/button";
 import { LoadingState } from "@/components/common/states";
 import { InlineAlert } from "@/components/common/toast";
-import { cn } from "@/lib/format";
 import { POINTS_RULE, POINTS_RULE_TEXT, pointsForReport } from "@/lib/points";
 import { DEMO_REFERENCE_POINT, formatDistance } from "@/lib/geo";
 import { useDeviceClass } from "@/lib/hooks/use-device-class";
@@ -37,6 +35,7 @@ import { actions, useAppState } from "@/lib/store/app-store";
 import type { GeoPoint } from "@/lib/types";
 import { BinPickerDialog } from "./bin-picker-dialog";
 import { DesktopOnlyNotice } from "./desktop-only-notice";
+import { PhoneQrCode } from "./phone-qr-code";
 import { PhotoTips } from "./photo-tips";
 import { RecycleStepper } from "./recycle-stepper";
 
@@ -47,7 +46,7 @@ export function CaptureFlow() {
   return <HandheldCapture />;
 }
 
-type CameraError = "denied" | "unavailable" | "in-use" | "unsupported" | "insecure";
+type CameraError = "denied" | "unavailable" | "in-use" | "unsupported" | "insecure" | "no-rear-camera";
 type Phase =
   | { kind: "intro" }
   | { kind: "starting" }
@@ -77,12 +76,32 @@ const CAMERA_ERRORS: Record<CameraError, { title: string; body: string; retry: b
     body: "Your browser doesn't support live camera capture. Please open BotleValor in an up-to-date browser such as Chrome or Safari.",
     retry: false,
   },
+  "no-rear-camera": {
+    title: "A phone or tablet back camera is required",
+    body: "Recycling evidence must be taken with the back camera of a phone or tablet. Laptop and desktop webcams can't be used, including in browser phone-emulation mode.",
+    retry: false,
+  },
   insecure: {
     title: "A secure connection is required",
     body: "Camera access only works over HTTPS (or localhost). Open BotleValor using a secure https:// address and try again.",
     retry: false,
   },
 };
+
+/**
+ * True when the camera faces away from the user (a phone or tablet back
+ * camera). This is real hardware information, so browser device emulation
+ * can't fake it: laptop webcams never report "environment".
+ */
+function isRearCamera(track: MediaStreamTrack | undefined): boolean {
+  if (!track) return false;
+  const settings = track.getSettings?.() as MediaTrackSettings | undefined;
+  if (settings?.facingMode) return settings.facingMode === "environment";
+  const caps = track.getCapabilities?.() as (MediaTrackCapabilities & { facingMode?: string[] }) | undefined;
+  if (caps?.facingMode?.length) return caps.facingMode.includes("environment");
+  // Last resort: camera name (English, Portuguese, Indonesian).
+  return /\b(back|rear|environment|traseira|trás|belakang)\b|facing back/i.test(track.label);
+}
 
 function mapCameraError(err: unknown): CameraError {
   const name = err instanceof DOMException || err instanceof Error ? err.name : "";
@@ -98,8 +117,6 @@ function HandheldCapture() {
   const geo = useGeolocation();
 
   const [phase, setPhase] = useState<Phase>({ kind: "intro" });
-  const [facing, setFacing] = useState<"environment" | "user">("environment");
-  const [canSwitch, setCanSwitch] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -132,7 +149,7 @@ function HandheldCapture() {
   }, []);
 
   const startCamera = useCallback(
-    async (facingMode: "environment" | "user") => {
+    async () => {
       if (!window.isSecureContext) {
         setPhase({ kind: "error", error: "insecure" });
         return;
@@ -146,18 +163,18 @@ function HandheldCapture() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
-          video: { facingMode: { ideal: facingMode }, width: { ideal: 1920 }, height: { ideal: 1440 } },
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1440 } },
         });
-        streamRef.current = stream;
         const track = stream.getVideoTracks()[0];
+        if (!isRearCamera(track)) {
+          // Not a phone/tablet back camera (e.g. laptop webcam under DevTools emulation).
+          stream.getTracks().forEach((t) => t.stop());
+          setPhase({ kind: "error", error: "no-rear-camera" });
+          return;
+        }
+        streamRef.current = stream;
         const caps = (track?.getCapabilities?.() ?? {}) as MediaTrackCapabilities & { torch?: boolean };
         setTorchSupported(!!caps.torch);
-        try {
-          const devices = await navigator.mediaDevices.enumerateDevices();
-          setCanSwitch(devices.filter((d) => d.kind === "videoinput").length > 1);
-        } catch {
-          setCanSwitch(false);
-        }
         setPhase({ kind: "live" });
       } catch (err) {
         setPhase({ kind: "error", error: mapCameraError(err) });
@@ -193,13 +210,7 @@ function HandheldCapture() {
   function begin() {
     // Permissions are requested only now, after the user starts the flow.
     if (locationAllowed && geo.status !== "granted" && geo.status !== "requesting") geo.request();
-    void startCamera(facing);
-  }
-
-  function switchCamera() {
-    const next = facing === "environment" ? "user" : "environment";
-    setFacing(next);
-    void startCamera(next);
+    void startCamera();
   }
 
   async function toggleTorch() {
@@ -238,7 +249,7 @@ function HandheldCapture() {
 
   function retake() {
     releasePhoto();
-    void startCamera(facing);
+    void startCamera();
   }
 
   function submit() {
@@ -386,7 +397,7 @@ function HandheldCapture() {
               muted
               autoPlay
               aria-label="Live camera preview"
-              className={cn("aspect-[3/4] max-h-[70dvh] w-full object-cover", facing === "user" && "-scale-x-100")}
+              className="aspect-[3/4] max-h-[70dvh] w-full object-cover"
             />
             {/* Framing guide */}
             <div className="pointer-events-none absolute inset-0" aria-hidden>
@@ -425,16 +436,7 @@ function HandheldCapture() {
               >
                 <span className="size-full rounded-full bg-white" />
               </button>
-              <div className="w-16">
-                {canSwitch ? (
-                  <button type="button" onClick={switchCamera} className="flex flex-col items-center gap-1 text-xs font-medium text-white">
-                    <span className="flex size-12 items-center justify-center rounded-full bg-white/20 backdrop-blur">
-                      <SwitchCamera className="size-5" aria-hidden />
-                    </span>
-                    Switch
-                  </button>
-                ) : null}
-              </div>
+              <div className="w-16" aria-hidden />
             </div>
           </section>
         ) : null}
@@ -497,9 +499,10 @@ function HandheldCapture() {
             </h2>
             <p className="mt-2 text-sm text-muted">{CAMERA_ERRORS[phase.error].body}</p>
             <p className="mt-2 text-xs text-subtle">For fair verification, photos must be taken live with the camera.</p>
+            {phase.error === "no-rear-camera" ? <PhoneQrCode /> : null}
             <div className="mt-5 flex flex-col gap-2">
               {CAMERA_ERRORS[phase.error].retry ? (
-                <Button size="lg" full onClick={() => void startCamera(facing)}>
+                <Button size="lg" full onClick={() => void startCamera()}>
                   <RefreshCw className="size-5" aria-hidden /> Try again
                 </Button>
               ) : null}

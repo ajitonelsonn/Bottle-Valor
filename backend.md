@@ -36,9 +36,9 @@ The main design choices are:
 
 | Item | Value |
 | --- | --- |
-| Account | `ecolafaek@gmail.com` |
+| Account | The project owner's Google account (Owner role on the project) |
 | Project (display name / ID) | `botlevalor` / `botlevalor` (number `494757558938`) |
-| Billing | Billing account `010A43-8D4D4B-037704`, Firebase **Blaze** (pay-as-you-go) plan. Credits confirmed by the owner. |
+| Billing | Linked billing account, Firebase **Blaze** (pay-as-you-go) plan. Credits confirmed by the owner. |
 | Region | **us-central1** for Firestore and both buckets (Cloud Run will match). Gemini uses the `global` endpoint. |
 
 | Resource | Name | Notes |
@@ -80,7 +80,7 @@ The code system (`src/server/email-codes.ts`) works like this:
 | Logging | Codes are **never** logged |
 | Email not configured | If Resend isn't set up, sending fails with a clear message. There is deliberately no fallback that prints codes to the logs. |
 
-> **Resend limitation (action needed for real users):** with the free test sender `onboarding@resend.dev`, Resend only delivers to the email that owns the Resend account (`ajitonelson7@gmail.com`). To email anyone else, verify your domain at <https://resend.com/domains> and set `EMAIL_FROM` to an address on that domain.
+> **Resend limitation (action needed for real users):** with the free test sender `onboarding@resend.dev`, Resend only delivers to the email address that owns the Resend account. To email anyone else, verify your domain at <https://resend.com/domains> and set `EMAIL_FROM` to an address on that domain.
 
 ### 3.2 Google (currently the only sign-in method)
 
@@ -101,6 +101,7 @@ Email codes can only reach real users once a Resend sending domain is verified, 
    - It hides the email and password forms. Log in and Sign up show only Google.
    - It hides "Change password" in Settings.
    - It makes `POST /api/auth/send-code` return **403**.
+   - It makes `/verify` redirect to `/login`. An unverified email account is signed out with a "Please continue with Google" message.
 
 The code for email sign-in, the 6-digit codes and Resend is all still in place. **To turn it back on:**
 
@@ -163,6 +164,11 @@ Verified live: an anonymous read of `rewards` and a forged write to `pointTransa
 - **Upload checks:** the server only accepts real JPEG bytes (it checks the file signature), up to 6 MB.
 - **No base64 in Firestore:** image bytes are never stored in Firestore.
 - **Camera only:** the capture flow takes photos with the camera. There is no gallery or file-upload option.
+- **Phones and tablets only, checked on real hardware.** Browser DevTools phone emulation and page zoom can fake touch input and the "mobile" flag, so the capture page also checks two things they can't fake:
+  1. **Graphics chip:** the WebGL GPU name. Desktop GPUs (NVIDIA, AMD, Intel, Apple M-series, software renderers) mean a laptop or desktop.
+  2. **Rear camera:** after the camera starts, it must report `facingMode: "environment"`, meaning a back camera. Laptop webcams don't, so the camera is stopped and the user is told a phone or tablet back camera is required.
+
+  In both cases a QR code opens the page on the user's phone. These checks are deterrents in the browser. The server-side checks (Gemini, GPS, duplicate photos, rate limits) remain the real protection, because a determined person could still call the API directly.
 - **Untouched originals:** the original files in `ilustration/` have not been changed.
 
 ---
@@ -284,13 +290,13 @@ Measures in place:
 
 ```bash
 gcloud config set project botlevalor
-gcloud auth application-default login     # sign in as ecolafaek@gmail.com in the browser
+gcloud auth application-default login     # sign in with the project owner's Google account
 npm install
 cp .env.example .env.local                # then fill in values; never commit it
 npm run dev                               # http://localhost:3000
 ```
 
-- **Testing the camera flow:** use a phone on HTTPS, or Chrome DevTools device emulation on `localhost`. The camera needs a secure context.
+- **Testing the camera flow:** use a real phone or tablet over HTTPS, for example the deployed Cloud Run URL. DevTools phone emulation is deliberately blocked by the hardware checks in §5. The camera needs a secure context.
 - **Changing the catalogue:** edit `scripts/seed-data/bins.json` or `rewards.json`, and put any new images in `scripts/seed-data/images/` (referenced by `imagePath`). Then run `npm run seed`. The seed uploads the images to `GCS_PUBLIC_BUCKET` and upserts documents by ID, and it is safe to re-run.
 - **Adding a real bin:** double-check that latitude (negative for Dili) comes before longitude.
 

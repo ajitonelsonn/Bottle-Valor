@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/common/button";
 import { ErrorState, LoadingState } from "@/components/common/states";
+import { EMAIL_PASSWORD_AUTH_ENABLED } from "@/lib/config";
 import { actions, consumeExplicitSignOut, useAppState } from "@/lib/store/app-store";
 import { DesktopSidebar } from "./desktop-sidebar";
 import { MobileNavigation } from "./mobile-navigation";
@@ -22,7 +23,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated || signedIn || accountError) return;
     if (session.status === "pending-verification") {
-      router.replace("/verify");
+      // With email sign-in off, an unverified email account can't continue: the login page signs it out with a message.
+      router.replace(EMAIL_PASSWORD_AUTH_ENABLED ? "/verify" : "/login?email-disabled=1");
     } else if (consumeExplicitSignOut()) {
       router.replace("/login?signed-out=1");
     } else {

@@ -6,6 +6,7 @@ import { CameraOff, CheckCircle2, Laptop, MapPin, Smartphone, Tablet } from "luc
 import { buttonClass } from "@/components/common/button";
 import { Dialog } from "@/components/common/dialog";
 import { PageHeader } from "@/components/common/page-header";
+import { PhoneQrCode } from "./phone-qr-code";
 import { PHOTO_TIPS } from "./photo-tips";
 
 /** Shown on laptops/desktops: the capture workflow is phone/tablet only. */
@@ -38,7 +39,7 @@ export function DesktopOnlyNotice() {
         onClose={() => router.push("/dashboard")}
         title="Please use a phone or tablet to recycle a bottle."
         hideTitle
-        size="sm"
+        size="md"
       >
         <div className="text-center">
           <div className="relative mx-auto flex h-36 w-56 items-center justify-center rounded-3xl bg-linear-to-b from-green-50 to-blue-50">
@@ -60,7 +61,8 @@ export function DesktopOnlyNotice() {
             <span className="text-subtle">or</span>
             <Tablet className="size-4 text-green-600" aria-hidden /> Tablet required
           </p>
-          <div className="mt-6 flex flex-col gap-2">
+          <PhoneQrCode />
+          <div className="mt-5 flex flex-col gap-2">
             <Link href="/dashboard" className={buttonClass({ size: "lg", full: true })}>
               Back to dashboard
             </Link>

@@ -10,7 +10,7 @@ import { Checkbox, PasswordField, TextField } from "@/components/common/form-fie
 import { InlineAlert } from "@/components/common/toast";
 import { requestPasswordReset, signIn, signInWithGoogle } from "@/lib/firebase/auth-actions";
 import { EMAIL_PASSWORD_AUTH_ENABLED } from "@/lib/config";
-import { useAppState } from "@/lib/store/app-store";
+import { actions, useAppState } from "@/lib/store/app-store";
 import { GoogleButton } from "./google-button";
 import { OrDivider } from "./auth-layout";
 
@@ -20,7 +20,7 @@ function safeNext(next: string | undefined): string {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
 }
 
-export function LoginForm({ next, signedOut }: { next?: string; signedOut?: boolean }) {
+export function LoginForm({ next, signedOut, emailDisabled }: { next?: string; signedOut?: boolean; emailDisabled?: boolean }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,7 +35,10 @@ export function LoginForm({ next, signedOut }: { next?: string; signedOut?: bool
   useEffect(() => {
     if (!hydrated) return;
     if (session.status === "signed-in") router.replace(safeNext(next));
-    else if (session.status === "pending-verification" && !submitting) router.replace("/verify");
+    else if (session.status === "pending-verification" && !submitting) {
+      if (EMAIL_PASSWORD_AUTH_ENABLED) router.replace("/verify");
+      else void actions.signOut();
+    }
   }, [hydrated, session.status, next, router, submitting]);
 
   async function onGoogle() {
@@ -74,7 +77,12 @@ export function LoginForm({ next, signedOut }: { next?: string; signedOut?: bool
 
   return (
     <>
-      {signedOut ? (
+      {emailDisabled ? (
+        <InlineAlert tone="info" title="Please continue with Google" className="mb-5">
+          Email and password sign-in is temporarily unavailable, so that account can&apos;t be used right now.
+        </InlineAlert>
+      ) : null}
+      {signedOut && !emailDisabled ? (
         <InlineAlert tone="success" title="You've signed out" className="mb-5">
           You have been signed out. Log in again to continue.
         </InlineAlert>

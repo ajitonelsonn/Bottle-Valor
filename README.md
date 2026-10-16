@@ -8,11 +8,24 @@ Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Leaflet + OpenStreet
 
 **Backend documentation:** see [backend.md](backend.md) for the architecture, data model, API, verification pipeline, security, deployment and operations.
 
+**Google Cloud AI Builder Cup 2026** · Theme: **Sustainability & Social Impact** · Licensed under the [MIT License](LICENSE).
+
+## The problem
+
+In Dili, Timor-Leste, the government and NGOs have already installed recycling bins for plastic bottles, but many people still don't use them. BotleValor gives citizens a reason to: find a real bin, recycle bottles there, prove it with one live photo, and earn points toward future rewards. A public leaderboard makes it a community effort.
+
 ## How it works
 
 ![BotleValor — how it works: user journey, report verification pipeline and Google Cloud platform](diagram/botlevalor-diagram.png)
 
-The diagram shows the user journey from first visit to points, what happens on the server when a recycling report is submitted, and the Google Cloud platform behind it. Its editable source is [`diagram/botlevalor-diagram.html`](diagram/botlevalor-diagram.html), and the logos are in [`diagram/logos/`](diagram/logos/).
+The diagram shows the user journey from first visit to points, what happens on the server when a recycling report is submitted, and the Google Cloud platform behind it.
+
+## Try it (notes for judges and testers)
+
+1. Open the **live app** above and choose **Continue with Google**.
+2. Explore the dashboard, the bin map, history, rewards and the leaderboard on any device.
+3. **Recycle Now works on phones and tablets only**, because it needs the live camera and GPS. Photos can't be uploaded from a gallery. On a laptop, Recycle Now shows a **QR code**: scan it with your phone to continue there.
+4. **Location rule:** a report is only **Verified** when the phone is within **100 m of a registered bin**. The first real bin is in front of Palacio do Governo, Dili. Reports made elsewhere are correctly marked **Not verified**, but you'll still see Gemini's analysis of the photo: bottle, hand, bin and count. A verified report recorded at the bin is shown in our demo video.
 
 > **Sign-in:** Google sign-in only, for now. Email + password is switched off until a verified email domain exists for sending verification codes. See backend.md §3 to re-enable it.
 
@@ -42,14 +55,11 @@ These steps deploy BotleValor to **your own** Google Cloud project. The deploy u
 - Have a Google Cloud project with **billing enabled**. Then, in the [Firebase console](https://console.firebase.google.com/), **add Firebase to that project**:
   - Enable **Authentication → Google** sign-in. Email/Password is optional, see [backend.md](backend.md) §3.4.
   - Register a **Web app** and copy its config.
-- **Point the app at your Firebase project.** Edit `.env.production`; it holds only the *public* Firebase web config, which gets built into the page. If you skip this, your build will use the original BotleValor project.
+- **Point the app at your Firebase project.** Copy the template and fill in your Firebase web config. These values are *public* and get built into the page; the build reads them from `.env.production`.
 
   ```bash
-  NEXT_PUBLIC_FIREBASE_API_KEY=...
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-  NEXT_PUBLIC_FIREBASE_APP_ID=...
-  NEXT_PUBLIC_EMAIL_PASSWORD_AUTH=false
+  cp .env.production.example .env.production
+  # then set NEXT_PUBLIC_FIREBASE_API_KEY, _AUTH_DOMAIN, _PROJECT_ID and _APP_ID
   ```
 
 ### 1. Set your variables
@@ -158,10 +168,10 @@ gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.serv
 | Route | Screen |
 | --- | --- |
 | `/` | Landing (includes the public points leaderboard) |
-| `/login`, `/signup`, `/verify` | Google sign-in (email/password + 6-digit code available when re-enabled) |
+| `/login`, `/signup` | Google sign-in. `/verify` (6-digit email code) redirects to `/login` while email sign-in is off |
 | `/dashboard` | Dashboard |
 | `/bins` | Recycling bin map (OpenStreetMap). `?bin=<id>` opens a bin |
-| `/recycle/capture` | Camera-only evidence capture (phones/tablets only) |
+| `/recycle/capture` | Live rear-camera evidence capture on phones and tablets only. Laptops get a QR code |
 | `/recycle/verify` | Upload + AI verification result |
 | `/recycle/success` | Points earned |
 | `/history`, `/rewards`, `/profile`, `/settings` | History, rewards catalogue, profile, settings |
@@ -208,3 +218,9 @@ Notes:
 - Points are decided and awarded **only on the server**, at most once per submission, through a Firestore ledger.
 - Rewards start at **500 points**. Redemption is disabled until a redemption backend and real partners exist.
 - The landing page shows a **public leaderboard** of the top 10 recyclers by points. It shows only first names and last initials, and users can hide themselves in Settings.
+
+## License
+
+BotleValor's source code is released under the [MIT License](LICENSE).
+
+Third-party names and logos shown in the diagram, including Google Cloud, Firebase, Gemini, Next.js and others, are trademarks of their respective owners. They are used only to identify the technologies this project uses.

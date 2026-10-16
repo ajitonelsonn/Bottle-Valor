@@ -12,6 +12,7 @@ export default async function LoginPage({
   const params = await searchParams;
   const next = typeof params.next === "string" ? params.next : undefined;
   const signedOut = params["signed-out"] === "1";
+  const emailDisabled = params["email-disabled"] === "1";
   return (
     <AuthLayout
       headline="Small Actions"
@@ -19,7 +20,7 @@ export default async function LoginPage({
       description="Recycle plastic bottles at designated bins around Dili, earn points, and help create a cleaner and healthier Timor-Leste."
     >
       <AuthCardHeader title="Welcome back" subtitle="Log in to continue recycling and earning points." />
-      <LoginForm next={next} signedOut={signedOut} />
+      <LoginForm next={next} signedOut={signedOut} emailDisabled={emailDisabled} />
     </AuthLayout>
   );
 }

@@ -32,7 +32,12 @@ BotleValor-Claude-Code-Frontend-Brief.md
 .env.production
 
 BotleValor-Google-Cloud-Backend-Setup-for-Claude.md
-src/lib/__tests__
 diagram/logos
 diagram/botlevalor-diagram.html
 diagram/README.md
+
+# unused image (not referenced by the app)
+public/images/bg-image2.png
+
+# placeholder-only template for forks (must come after the .env* rules)
+!.env.production.example

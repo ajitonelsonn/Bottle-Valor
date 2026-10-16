@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { EMAIL_PASSWORD_AUTH_ENABLED } from "@/lib/config";
 import { AuthCardHeader, AuthLayout } from "@/components/auth/auth-layout";
 import { OtpForm } from "@/components/auth/otp-form";
 
@@ -9,6 +11,9 @@ export default async function VerifyEmailPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  // Email verification codes only exist for email + password sign-in, which is
+  // switched off for now (Google-only). Google accounts never need this page.
+  if (!EMAIL_PASSWORD_AUTH_ENABLED) redirect("/login");
   const params = await searchParams;
   const emailError = typeof params["email-error"] === "string" ? params["email-error"].slice(0, 200) : undefined;
   return (

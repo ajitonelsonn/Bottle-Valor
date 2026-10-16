@@ -1,0 +1,16 @@
+[
+  {
+    "id": "palacio-do-governo",
+    "name": "Palacio do Governo — Recycling Bin",
+    "area": "Palacio do Governo, Dili",
+    "description": "Fish-shaped wire collection cage for plastic bottles on the waterfront in front of Palacio do Governo, Dili, Timor-Leste.",
+    "latitude": -8.553293,
+    "longitude": 125.578221,
+    "supportedMaterials": [
+      "plastic-bottle"
+    ],
+    "isActive": true,
+    "source": "Location and photo supplied by the BotleValor team",
+    "imagePath": "bins/palacio-do-governo.jpeg"
+  }
+]

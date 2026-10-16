@@ -1,0 +1,43 @@
+{
+  "name": "botlevalor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BotleValor \u2014 frontend-only prototype for bottle-recycling verification and rewards in Dili, Timor-Leste.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "seed": "node --env-file=.env.local scripts/seed-firestore.mjs"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^8.4.0",
+    "@google/genai": "^2.30.0",
+    "firebase": "^13.0.0",
+    "firebase-admin": "^14.5.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.57.0",
+    "next": "^16.4.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-leaflet": "^5.0.0",
+    "resend": "^6.33.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}

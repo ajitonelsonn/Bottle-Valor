@@ -1,0 +1,38 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+/build
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+
+# env files
+.env*
+!.env.example
+# public Firebase web config only — no secrets
+!.env.production
+
+# credentials — never commit
+*-key.json
+service-account*.json
+application_default_credentials.json
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+docs/
+ilustration/
+BotleValor-Claude-Code-Frontend-Brief.md
+.env.production
+
+BotleValor-Google-Cloud-Backend-Setup-for-Claude.md
+src/lib/__tests__
+diagram/logos
+diagram/botlevalor-diagram.html
+diagram/README.md

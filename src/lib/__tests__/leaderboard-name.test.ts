@@ -18,11 +18,12 @@ describe("publicName", () => {
   });
   it("never exposes an email or an email-derived name", () => {
     expect(
-      publicName({ name: "nelsonajito", email: "nelsonajito123@gmail.com" }),
+      publicName({ name: "dilirecycler", email: "dilirecycler123@example.com" }),
     ).toBe("Recycler");
     expect(publicName({ name: "someone@mail.com", email: "x@y.com" })).toBe(
       "Recycler",
     );
     expect(publicName({ name: "", email: "x@y.com" })).toBe("Recycler");
+    expect(publicName({ name: "Dili.Recycler", email: "dilirecycler@example.com" })).toBe("Recycler");
   });
 });
